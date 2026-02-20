@@ -1,33 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>W Wallet</title>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
 <div class="wallet-container">
-  <h1>W Wallet</h1>
-  <p>Click "Watch" to earn 5 W!</p>
-  
-  <button id="watch-btn">Watch</button>
+  <h2>Withdraw</h2>
+  <p>Your balance: <span id="balance">100</span> W</p>
+  <input type="number" id="withdraw-amount" placeholder="Enter amount">
+  <button id="withdraw-btn">Withdraw</button>
 
-  <div id="captcha-container" style="display:none;">
-    <p>Solve to continue: <span id="captcha-question"></span></p>
-    <input type="number" id="captcha-answer" />
-    <button id="verify-btn">Verify</button>
-  </div>
-
-  <div class="balance">
-    Your balance: <span id="balance">0</span> W
-  </div>
-
-  <div id="reward" style="display:none;">
-    🎉 You earned 5 W! 🎉
+  <div id="withdraw-result" style="display:none; margin-top:10px; color:#00ff00;">
+    Withdraw successful!<br>
+    Amount: <span id="withdrawed-amount"></span><br>
+    Code: <span id="withdraw-code"></span><br>
+    Remaining Balance: <span id="withdraw-balance"></span> W
   </div>
 </div>
-
-<script src="script.js"></script>
-</body>
-</html>
