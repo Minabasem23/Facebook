@@ -10,70 +10,80 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const watchBtn = document.getElementById('watch-btn');
+    const captchaContainer = document.getElementById('captcha-container');
+    const captchaQuestion = document.getElementById('captcha-question');
+    const captchaAnswer = document.getElementById('captcha-answer');
+    const verifyBtn = document.getElementById('verify-btn');
+    const rewardDiv = document.getElementById('reward');
+
+    let nextAd, currentResult;
+
     watchBtn.addEventListener('click', () => {
+        // تحديد الإعلان التالي
+        if(walletData.adn === 0) nextAd = 1;
+        else if(walletData.adn === 1) nextAd = 2;
+        else nextAd = 1;
 
-        let nextAd;
-        if(walletData.adn === 0) {
-            nextAd = 1; // أول إعلان
-        } else if(walletData.adn === 1) {
-            // قبل فتح الإعلان الثاني، تحقق captcha
-            if(!solveCaptcha()){
-                alert("Wrong answer! You cannot watch the ad.");
-                return; // يمنع فتح الإعلان الثاني
-            }
-            nextAd = 2;
+        // إذا الإعلان الثاني، إظهار captcha
+        if(nextAd === 2){
+            generateCaptcha();
+            captchaContainer.style.display = "block";
+            watchBtn.disabled = true;
         } else {
-            // إذا وصلنا بعد الإعلان الثاني، نبدأ من الأول مرة أخرى
-            nextAd = 1;
-        }
-
-        // فتح الإعلان في نافذة جديدة
-        const adWindow = window.open(ads[nextAd], "_blank", "width=800,height=600");
-        let watched = false;
-
-        // عداد 30 ثانية
-        const timer = setTimeout(() => {
-            watched = true;
-            adWindow.close();
-            addW(nextAd);
-        }, 30000);
-
-        const checkInterval = setInterval(() => {
-            if (adWindow.closed) {
-                clearInterval(checkInterval);
-                if(!watched){
-                    const replay = confirm("You didn't wait 30s. Do you want to replay?");
-                    if(replay){
-                        watchBtn.click();
-                    }
-                }
-            }
-        }, 1000);
-
-        function addW(ad) {
-            balance += 5;
-            walletData.balance = balance;
-            walletData.adn = ad;
-            walletData.timestamp = new Date().toISOString();
-            localStorage.setItem('walletData', JSON.stringify(walletData));
-            document.getElementById('balance').textContent = balance;
+            startAd(nextAd);
         }
     });
 
-    function solveCaptcha(){
-        let num1 = Math.floor(Math.random()*9) + 1;
-        let num2 = Math.floor(Math.random()*9) + 1;
-        let operator;
-
-        if(num1 >= num2){
-            operator = "-";
+    verifyBtn.addEventListener('click', () => {
+        const userAnswer = parseInt(captchaAnswer.value);
+        if(userAnswer === currentResult){
+            captchaContainer.style.display = "none";
+            captchaAnswer.value = "";
+            watchBtn.disabled = false;
+            startAd(nextAd);
         } else {
-            operator = "+";
+            alert("Wrong answer! Try again.");
         }
+    });
 
-        const result = operator === "+" ? num1 + num2 : num1 - num2;
-        const userAnswer = prompt(`Solve this to continue: ${num1} ${operator} ${num2} = ?`);
+    function generateCaptcha(){
+        let num1 = Math.floor(Math.random()*9)+1;
+        let num2 = Math.floor(Math.random()*9)+1;
+        let operator = num1 >= num2 ? "-" : "+";
+        currentResult = operator === "+" ? num1+num2 : num1-num2;
+        captchaQuestion.textContent = `${num1} ${operator} ${num2} = ?`;
+    }
 
-        return parseInt(userAnswer) === result;
+    function startAd(ad){
+        const adWindow = window.open(ads[ad], "_blank", "width=800,height=600");
+        let watched = false;
+
+        const timer = setTimeout(() => {
+            watched = true;
+            adWindow.close();
+            giveReward(ad);
+        }, 30000); // 30s
+
+        const checkInterval = setInterval(() => {
+            if(adWindow.closed){
+                clearInterval(checkInterval);
+                if(!watched){
+                    const replay = confirm("You didn't wait 30s. Do you want to replay?");
+                    if(replay) watchBtn.click();
+                }
+            }
+        }, 1000);
+    }
+
+    function giveReward(ad){
+        balance += 5;
+        walletData.balance = balance;
+        walletData.adn = ad;
+        walletData.timestamp = new Date().toISOString();
+        localStorage.setItem('walletData', JSON.stringify(walletData));
+        document.getElementById('balance').textContent = balance;
+
+        rewardDiv.style.display = "block";
+        setTimeout(()=> rewardDiv.style.display = "none", 3000); // اختفاء بعد 3s
     }
 });
