@@ -4,22 +4,25 @@ body {
   color: #fff;
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100vh;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 20px;
 }
 
 .wallet-container {
-  text-align: center;
   background: rgba(0,0,0,0.3);
   padding: 30px;
   border-radius: 20px;
+  width: 350px;
   box-shadow: 0 0 20px rgba(0,0,0,0.5);
   animation: fadeIn 1s ease-in-out;
 }
 
+h1, h2 { text-align: center; }
+
 button {
-  padding: 12px 25px;
-  margin: 10px;
+  padding: 12px 20px;
+  margin: 8px 0;
   font-size: 16px;
   border: none;
   border-radius: 10px;
@@ -34,19 +37,23 @@ button:hover {
   background: #ffd700;
 }
 
-.balance {
-  margin-top: 20px;
-  font-size: 24px;
-  animation: bounce 1s infinite;
+input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 10px;
 }
 
-#reward {
-  margin-top: 20px;
-  font-size: 20px;
+.hidden { display: none; }
+
+#withdraw-result {
+  margin-top: 15px;
+  font-size: 18px;
   color: #00ff00;
+  text-align: center;
   animation: pop 1s ease-in-out;
 }
 
 @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
-@keyframes bounce { 0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);} }
 @keyframes pop { 0%{transform:scale(0);}100%{transform:scale(1);} }
