@@ -13,8 +13,18 @@
   
   <button id="watch-btn">Watch</button>
 
+  <div id="captcha-container" style="display:none;">
+    <p>Solve to continue: <span id="captcha-question"></span></p>
+    <input type="number" id="captcha-answer" />
+    <button id="verify-btn">Verify</button>
+  </div>
+
   <div class="balance">
     Your balance: <span id="balance">0</span> W
+  </div>
+
+  <div id="reward" style="display:none;">
+    🎉 You earned 5 W! 🎉
   </div>
 </div>
 
