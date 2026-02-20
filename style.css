@@ -47,12 +47,19 @@ input[type="number"] {
 
 .hidden { display: none; }
 
-#withdraw-result {
+#reward {
   margin-top: 15px;
-  font-size: 18px;
+  font-size: 20px;
   color: #00ff00;
   text-align: center;
   animation: pop 1s ease-in-out;
+}
+
+#copy-status {
+  color: #00ff00;
+  font-weight: bold;
+  margin-top: 5px;
+  text-align: center;
 }
 
 @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
