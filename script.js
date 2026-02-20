@@ -1,18 +1,6 @@
 /* withdraw-math.js */
 /* Mathematical Withdraw Decoder + Balance Handler */
 
-/*
- Rules:
- 1) Take code (example: 53307515.9)
- 2) Extract integer part * 10
- 3) Mod 256 → convert to 8-bit binary
- 4) Bits:
-    - 1 => 2 W
-    - 0 => 1 W
- 5) Decimal part fixes the missing value
- 6) Final amount is deducted from balance
-*/
-
 // ===== Wallet Data =====
 let wallet = JSON.parse(localStorage.getItem("wallet")) || {
     balance: 100 // initial balance
@@ -66,10 +54,3 @@ function withdrawByCode(code) {
         remainingBalance: wallet.balance
     };
 }
-
-// ===== Example Usage =====
-const exampleCode = 53307515.9;
-const withdrawResult = withdrawByCode(exampleCode);
-
-console.log("Withdraw Result:", withdrawResult);
-console.log("Current Balance:", wallet.balance, "W");
