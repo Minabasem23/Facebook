@@ -18,51 +18,23 @@
   <!-- Withdraw Section -->
   <div class="withdraw-section">
     <h2>Withdraw</h2>
-
-    <!-- حقل إدخال الكود -->
-    <input type="number" id="withdraw-code-input" placeholder="Enter code here" step="0.1">
-    <!-- زر السحب -->
+    <input type="number" id="withdraw-amount-input" placeholder="Enter amount to withdraw" step="0.1" min="0">
     <button id="withdraw-btn">Withdraw</button>
-
-    <!-- نتيجة السحب -->
     <div id="withdraw-result" class="hidden">
       <p>✅ Withdraw successful!</p>
-      <p>Amount: <span id="withdrawed-amount"></span> W</p>
-      <p>Code: <span id="withdraw-code"></span></p>
+      <p>Amount Withdrawn: <span id="withdrawed-amount"></span> W</p>
       <p>Remaining Balance: <span id="withdraw-balance"></span> W</p>
     </div>
   </div>
+
+  <!-- Watch Ad Section -->
+  <div class="watch-section">
+    <h2>Watch Ad</h2>
+    <button id="watch-btn">Watch Ad</button>
+    <p id="watch-result" class="hidden">🎉 You earned <span id="earned-w">5</span> W!</p>
+  </div>
 </div>
 
-<script src="withdraw-math.js"></script>
-<script>
-const balanceSpan = document.getElementById('balance');
-const withdrawBtn = document.getElementById('withdraw-btn');
-const codeInput = document.getElementById('withdraw-code-input');
-
-const resultDiv = document.getElementById('withdraw-result');
-const withdrawnSpan = document.getElementById('withdrawed-amount');
-const codeSpan = document.getElementById('withdraw-code');
-const balanceResultSpan = document.getElementById('withdraw-balance');
-
-withdrawBtn.addEventListener('click', () => {
-  const code = parseFloat(codeInput.value);
-  if(isNaN(code)) { alert("Enter a valid code"); return; }
-
-  const withdrawResult = withdrawByCode(code);
-
-  if(!withdrawResult.success){
-    alert(withdrawResult.message);
-    return;
-  }
-
-  withdrawnSpan.textContent = withdrawResult.withdrawn;
-  codeSpan.textContent = withdrawResult.code;
-  balanceResultSpan.textContent = withdrawResult.remainingBalance;
-  balanceSpan.textContent = withdrawResult.remainingBalance;
-
-  resultDiv.classList.remove('hidden');
-});
-</script>
+<script src="wallet.js"></script>
 </body>
 </html>
