@@ -1,22 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>W Wallet</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
 <div class="wallet-container">
-  <h2>Withdraw</h2>
+  <h1>W Wallet</h1>
 
-  <p>Your balance: <span id="balance">0</span> W</p>
+  <div class="balance-container">
+    <p>Your balance: <span id="balance">100</span> W</p>
+  </div>
 
-  <input type="number" id="withdraw-amount" placeholder="Enter amount">
-  <button id="withdraw-btn">Withdraw</button>
+  <!-- Withdraw Section -->
+  <div class="withdraw-section">
+    <h2>Withdraw</h2>
+    <input type="number" id="withdraw-code-input" placeholder="Enter code here" step="0.1">
+    <button id="withdraw-btn">Withdraw</button>
 
-  <div id="withdraw-result" style="display:none; margin-top:15px;">
-    <p>✅ Withdraw successful!</p>
-    <p>Amount: <span id="withdrawed-amount"></span> W</p>
-    <p>
-      Code:
-      <span id="withdraw-code" style="font-weight:bold;"></span>
-    </p>
-
-    <button id="copy-btn">📋 Copy Code</button>
-    <p id="copy-status" style="color:#00ff00; display:none;">Copied!</p>
-
-    <p>Remaining Balance: <span id="withdraw-balance"></span> W</p>
+    <div id="withdraw-result" class="hidden">
+      <p>✅ Withdraw successful!</p>
+      <p>Amount: <span id="withdrawed-amount"></span> W</p>
+      <p>Code: <span id="withdraw-code"></span></p>
+      <p>Remaining Balance: <span id="withdraw-balance"></span> W</p>
+    </div>
   </div>
 </div>
+
+<script src="withdraw-math.js"></script>
+<script>
+const balanceSpan = document.getElementById('balance');
+const withdrawBtn = document.getElementById('withdraw-btn');
+const codeInput = document.getElementById('withdraw-code-input');
+
+const resultDiv = document.getElementById('withdraw-result');
+const withdrawnSpan = document.getElementById('withdrawed-amount');
+const codeSpan = document.getElementById('withdraw-code');
+const balanceResultSpan = document.getElementById('withdraw-balance');
+
+withdrawBtn.addEventListener('click', () => {
+  const code = parseFloat(codeInput.value);
+  if(isNaN(code)) { alert("Enter valid code"); return; }
+
+  const withdrawResult = withdrawByCode(code);
+
+  if(!withdrawResult.success){
+    alert(withdrawResult.message);
+    return;
+  }
+
+  withdrawnSpan.textContent = withdrawResult.withdrawn;
+  codeSpan.textContent = withdrawResult.code;
+  balanceResultSpan.textContent = withdrawResult.remainingBalance;
+  balanceSpan.textContent = withdrawResult.remainingBalance;
+
+  resultDiv.classList.remove('hidden');
+});
+</script>
+</body>
+</html>
