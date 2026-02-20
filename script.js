@@ -1,89 +1,47 @@
 document.addEventListener("DOMContentLoaded", () => {
-    let balance = 0;
-    let walletData = JSON.parse(localStorage.getItem('walletData')) || {balance:0, adn:0};
-    balance = walletData.balance;
+    let walletData = JSON.parse(localStorage.getItem('walletData')) || {balance:100, adn:0};
+    let balance = walletData.balance;
     document.getElementById('balance').textContent = balance;
 
-    const ads = {
-        1: "https://omg10.com/4/10591369",
-        2: "https://omg10.com/4/10591326"
-    };
-
-    const watchBtn = document.getElementById('watch-btn');
-    const captchaContainer = document.getElementById('captcha-container');
-    const captchaQuestion = document.getElementById('captcha-question');
-    const captchaAnswer = document.getElementById('captcha-answer');
-    const verifyBtn = document.getElementById('verify-btn');
-    const rewardDiv = document.getElementById('reward');
-
-    let nextAd, currentResult;
-
-    watchBtn.addEventListener('click', () => {
-        // تحديد الإعلان التالي
-        if(walletData.adn === 0) nextAd = 1;
-        else if(walletData.adn === 1) nextAd = 2;
-        else nextAd = 1;
-
-        // إذا الإعلان الثاني، إظهار captcha
-        if(nextAd === 2){
-            generateCaptcha();
-            captchaContainer.style.display = "block";
-            watchBtn.disabled = true;
-        } else {
-            startAd(nextAd);
+    const withdrawBtn = document.getElementById('withdraw-btn');
+    withdrawBtn.addEventListener('click', () => {
+        let amount = parseFloat(document.getElementById('withdraw-amount').value);
+        if(isNaN(amount) || amount <= 0){
+            alert("Enter a valid amount!");
+            return;
         }
-    });
-
-    verifyBtn.addEventListener('click', () => {
-        const userAnswer = parseInt(captchaAnswer.value);
-        if(userAnswer === currentResult){
-            captchaContainer.style.display = "none";
-            captchaAnswer.value = "";
-            watchBtn.disabled = false;
-            startAd(nextAd);
-        } else {
-            alert("Wrong answer! Try again.");
+        if(amount > balance){
+            alert("Not enough balance!");
+            return;
         }
-    });
 
-    function generateCaptcha(){
-        let num1 = Math.floor(Math.random()*9)+1;
-        let num2 = Math.floor(Math.random()*9)+1;
-        let operator = num1 >= num2 ? "-" : "+";
-        currentResult = operator === "+" ? num1+num2 : num1-num2;
-        captchaQuestion.textContent = `${num1} ${operator} ${num2} = ?`;
-    }
+        // الوقت الحالي بالمللي ثانية
+        const timeNow = performance.now();
+        let temp = timeNow * 5;
 
-    function startAd(ad){
-        const adWindow = window.open(ads[ad], "_blank", "width=800,height=600");
-        let watched = false;
+        // توليد رقم عشوائي 5 أرقام (لا أصفار)
+        const isArr = Array.from({length:5}, () => Math.floor(Math.random()*9)+1);
 
-        const timer = setTimeout(() => {
-            watched = true;
-            adWindow.close();
-            giveReward(ad);
-        }, 30000); // 30s
+        // ضرب كل رقم من is في temp
+        let result = temp;
+        for(let i=0;i<isArr.length;i++){
+            result *= isArr[i];
+        }
 
-        const checkInterval = setInterval(() => {
-            if(adWindow.closed){
-                clearInterval(checkInterval);
-                if(!watched){
-                    const replay = confirm("You didn't wait 30s. Do you want to replay?");
-                    if(replay) watchBtn.click();
-                }
-            }
-        }, 1000);
-    }
+        // قسمة على 3.14
+        result = result / 3.14;
 
-    function giveReward(ad){
-        balance += 5;
+        // خصم الرصيد
+        balance -= amount;
         walletData.balance = balance;
-        walletData.adn = ad;
-        walletData.timestamp = new Date().toISOString();
         localStorage.setItem('walletData', JSON.stringify(walletData));
         document.getElementById('balance').textContent = balance;
 
-        rewardDiv.style.display = "block";
-        setTimeout(()=> rewardDiv.style.display = "none", 3000); // اختفاء بعد 3s
-    }
+        // عرض النتيجة
+        document.getElementById('withdraw-amount').value = "";
+        document.getElementById('withdrawed-amount').textContent = amount;
+        document.getElementById('withdraw-code').textContent = result.toFixed(1);
+        document.getElementById('withdraw-balance').textContent = balance;
+        document.getElementById('withdraw-result').style.display = "block";
+    });
 });
