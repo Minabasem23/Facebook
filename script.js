@@ -33,7 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
        WATCH AD
     ===================== */
     watchBtn.addEventListener('click', () => {
-
         if (walletData.adn === 0) nextAd = 1;
         else if (walletData.adn === 1) nextAd = 2;
         else nextAd = 1;
@@ -106,15 +105,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =====================
-       WITHDRAW (NEW ENCRYPTION)
+       ENCRYPTION SYSTEM
+    ===================== */
+
+    function encryptNumber(number) {
+        const multiplier1 = 0.001;
+        const multiplier2 = 5;
+        const multiplier3 = 7;
+        const divisor = 3.14;
+
+        let code = ((number * multiplier1) * multiplier2 * multiplier3) / divisor;
+        return code.toFixed(1);
+    }
+
+    function decryptNumber(code) {
+        const multiplier1 = 0.001;
+        const multiplier2 = 5;
+        const multiplier3 = 7;
+        const divisor = 3.14;
+
+        let number = (code * divisor) / (multiplier1 * multiplier2 * multiplier3);
+        return Math.round(number);
+    }
+
+    /* =====================
+       WITHDRAW
     ===================== */
     const withdrawBtn = document.getElementById('withdraw-btn');
     const copyBtn = document.getElementById('copy-btn');
 
     withdrawBtn.addEventListener('click', () => {
-        const amount = parseFloat(document.getElementById('withdraw-amount').value);
+        const input = document.getElementById('withdraw-amount');
+        const amount = parseFloat(input.value);
 
-        if (isNaN(amount) || amount <= 0) {
+        if (!input || isNaN(amount) || amount <= 0) {
             alert("Enter valid amount");
             return;
         }
@@ -124,32 +148,15 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        /* ===== ENCRYPTION SYSTEM ===== */
+        // 🔐 Encrypt using our system
+        const finalCode = encryptNumber(amount);
 
-        // time → 0.001
-        let codeValue = performance.now() * 0.001;
-
-        // ×5
-        codeValue *= 5;
-
-        // 5 random numbers (1–9)
-        const rand = Array.from({ length: 5 }, () =>
-            Math.floor(Math.random() * 9) + 1
-        );
-
-        rand.forEach(n => codeValue *= n);
-
-        // ÷ π
-        codeValue /= Math.PI;
-
-        const finalCode = codeValue.toFixed(1);
-
-        /* ===== END ENCRYPTION ===== */
-
+        // Update balance
         balance -= amount;
         walletData.balance = balance;
         localStorage.setItem('walletData', JSON.stringify(walletData));
 
+        // Update UI
         document.getElementById('balance').textContent = balance;
         document.getElementById('withdrawed-amount').textContent = amount;
         document.getElementById('withdraw-code').textContent = finalCode;
@@ -157,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.getElementById('withdraw-result').classList.remove('hidden');
         document.getElementById('copy-status').classList.add('hidden');
-        document.getElementById('withdraw-amount').value = "";
+        input.value = "";
     });
 
     /* =====================
