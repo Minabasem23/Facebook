@@ -1,61 +1,75 @@
-document.addEventListener("DOMContentLoaded", () => {
-    let walletData = JSON.parse(localStorage.getItem('walletData')) || {balance:100};
-    let balance = walletData.balance;
+/* withdraw-math.js */
+/* Mathematical Withdraw Decoder + Balance Handler */
 
-    document.getElementById('balance').textContent = balance;
+/*
+ Rules:
+ 1) Take code (example: 53307515.9)
+ 2) Extract integer part * 10
+ 3) Mod 256 → convert to 8-bit binary
+ 4) Bits:
+    - 1 => 2 W
+    - 0 => 1 W
+ 5) Decimal part fixes the missing value
+ 6) Final amount is deducted from balance
+*/
 
-    const withdrawBtn = document.getElementById('withdraw-btn');
-    const copyBtn = document.getElementById('copy-btn');
+// ===== Wallet Data =====
+let wallet = JSON.parse(localStorage.getItem("wallet")) || {
+    balance: 100 // initial balance
+};
 
-    withdrawBtn.addEventListener('click', () => {
-        let amount = parseFloat(document.getElementById('withdraw-amount').value);
+// ===== Decode Function =====
+function decodeWithdrawAmount(code) {
+    const multiplied = Math.floor(code * 10);
+    const decimalPart = code % 1;
 
-        if(isNaN(amount) || amount <= 0){
-            alert("Enter a valid amount");
-            return;
-        }
-        if(amount > balance){
-            alert("Not enough balance");
-            return;
-        }
+    const x = multiplied % 256;
+    const bits = x.toString(2).padStart(8, '0');
 
-        // time × 5
-        const timeNow = performance.now();
-        let temp = timeNow * 5;
+    let baseAmount = 0;
+    for (let bit of bits) {
+        baseAmount += (bit === '1') ? 2 : 1;
+    }
 
-        // random 5 digits (1–9)
-        const isArr = Array.from({length:5}, () => Math.floor(Math.random()*9)+1);
+    const extra = Math.round(decimalPart * 9);
+    const finalAmount = baseAmount + extra;
 
-        let result = temp;
-        isArr.forEach(n => result *= n);
+    return {
+        code,
+        bits,
+        baseAmount,
+        extra,
+        finalAmount
+    };
+}
 
-        result = result / 3.14;
-        const finalCode = result.toFixed(1);
+// ===== Withdraw Logic =====
+function withdrawByCode(code) {
+    const result = decodeWithdrawAmount(code);
 
-        // update balance
-        balance -= amount;
-        walletData.balance = balance;
-        localStorage.setItem('walletData', JSON.stringify(walletData));
+    if (wallet.balance < result.finalAmount) {
+        return {
+            success: false,
+            message: "Insufficient balance",
+            balance: wallet.balance
+        };
+    }
 
-        // UI update
-        document.getElementById('withdrawed-amount').textContent = amount;
-        document.getElementById('withdraw-code').textContent = finalCode;
-        document.getElementById('withdraw-balance').textContent = balance;
-        document.getElementById('balance').textContent = balance;
+    wallet.balance -= result.finalAmount;
+    localStorage.setItem("wallet", JSON.stringify(wallet));
 
-        document.getElementById('withdraw-result').style.display = "block";
-        document.getElementById('copy-status').style.display = "none";
-        document.getElementById('withdraw-amount').value = "";
-    });
+    return {
+        success: true,
+        code: result.code,
+        bits: result.bits,
+        withdrawn: result.finalAmount,
+        remainingBalance: wallet.balance
+    };
+}
 
-    copyBtn.addEventListener('click', () => {
-        const codeText = document.getElementById('withdraw-code').textContent;
+// ===== Example Usage =====
+const exampleCode = 53307515.9;
+const withdrawResult = withdrawByCode(exampleCode);
 
-        navigator.clipboard.writeText(codeText).then(() => {
-            document.getElementById('copy-status').style.display = "block";
-            setTimeout(() => {
-                document.getElementById('copy-status').style.display = "none";
-            }, 2000);
-        });
-    });
-});
+console.log("Withdraw Result:", withdrawResult);
+console.log("Current Balance:", wallet.balance, "W");
