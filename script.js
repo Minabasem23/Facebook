@@ -1,47 +1,61 @@
 document.addEventListener("DOMContentLoaded", () => {
-    let walletData = JSON.parse(localStorage.getItem('walletData')) || {balance:100, adn:0};
+    let walletData = JSON.parse(localStorage.getItem('walletData')) || {balance:100};
     let balance = walletData.balance;
+
     document.getElementById('balance').textContent = balance;
 
     const withdrawBtn = document.getElementById('withdraw-btn');
+    const copyBtn = document.getElementById('copy-btn');
+
     withdrawBtn.addEventListener('click', () => {
         let amount = parseFloat(document.getElementById('withdraw-amount').value);
+
         if(isNaN(amount) || amount <= 0){
-            alert("Enter a valid amount!");
+            alert("Enter a valid amount");
             return;
         }
         if(amount > balance){
-            alert("Not enough balance!");
+            alert("Not enough balance");
             return;
         }
 
-        // الوقت الحالي بالمللي ثانية
+        // time × 5
         const timeNow = performance.now();
         let temp = timeNow * 5;
 
-        // توليد رقم عشوائي 5 أرقام (لا أصفار)
+        // random 5 digits (1–9)
         const isArr = Array.from({length:5}, () => Math.floor(Math.random()*9)+1);
 
-        // ضرب كل رقم من is في temp
         let result = temp;
-        for(let i=0;i<isArr.length;i++){
-            result *= isArr[i];
-        }
+        isArr.forEach(n => result *= n);
 
-        // قسمة على 3.14
         result = result / 3.14;
+        const finalCode = result.toFixed(1);
 
-        // خصم الرصيد
+        // update balance
         balance -= amount;
         walletData.balance = balance;
         localStorage.setItem('walletData', JSON.stringify(walletData));
+
+        // UI update
+        document.getElementById('withdrawed-amount').textContent = amount;
+        document.getElementById('withdraw-code').textContent = finalCode;
+        document.getElementById('withdraw-balance').textContent = balance;
         document.getElementById('balance').textContent = balance;
 
-        // عرض النتيجة
-        document.getElementById('withdraw-amount').value = "";
-        document.getElementById('withdrawed-amount').textContent = amount;
-        document.getElementById('withdraw-code').textContent = result.toFixed(1);
-        document.getElementById('withdraw-balance').textContent = balance;
         document.getElementById('withdraw-result').style.display = "block";
+        document.getElementById('copy-status').style.display = "none";
+        document.getElementById('withdraw-amount').value = "";
+    });
+
+    copyBtn.addEventListener('click', () => {
+        const codeText = document.getElementById('withdraw-code').textContent;
+
+        navigator.clipboard.writeText(codeText).then(() => {
+            document.getElementById('copy-status').style.display = "block";
+            setTimeout(() => {
+                document.getElementById('copy-status').style.display = "none";
+            }, 2000);
+        });
     });
 });
