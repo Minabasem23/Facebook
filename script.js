@@ -64,17 +64,22 @@ return temp-(x*y);
 const withdrawBtn=document.getElementById('withdraw-btn');
 const copyBtn=document.getElementById('copy-btn');
 
-const x=98,y=34,z=67,currently=5;
+const x=98,y=34,z=67;
 
 withdrawBtn.addEventListener('click',()=>{
 const input=document.getElementById('withdraw-amount');
 const amount=parseFloat(input.value);
 if(!input||isNaN(amount)||amount<=0){alert("Enter valid amount");return;}
 if(amount>balance){alert("Not enough balance");return;}
-const finalCode=encryptXYZ(amount,x,y,currently,z);
+
+// الآن currently = المبلغ نفسه
+const currently = amount;
+const finalCode = encryptXYZ(amount,x,y,currently,z);
+
 balance-=amount;
 walletData.balance=balance;
 localStorage.setItem('walletData',JSON.stringify(walletData));
+
 document.getElementById('balance').textContent=balance;
 document.getElementById('withdrawed-amount').textContent=amount;
 document.getElementById('withdraw-code').textContent=finalCode;
@@ -83,6 +88,7 @@ document.getElementById('withdraw-result').classList.remove('hidden');
 document.getElementById('copy-status').classList.add('hidden');
 input.value="";
 });
+
 copyBtn.addEventListener('click',()=>{
 const code=document.getElementById('withdraw-code').textContent;
 navigator.clipboard.writeText(code).then(()=>{document.getElementById('copy-status').classList.remove('hidden');setTimeout(()=>document.getElementById('copy-status').classList.add('hidden'),2000);});
