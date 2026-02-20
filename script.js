@@ -1,63 +1,175 @@
-// ===== Wallet Data =====
-let wallet = JSON.parse(localStorage.getItem("wallet")) || { balance: 100 };
+document.addEventListener("DOMContentLoaded", () => {
 
-// ===== Withdraw Section =====
-const withdrawBtn = document.getElementById('withdraw-btn');
-const amountInput = document.getElementById('withdraw-amount-input');
-const balanceSpan = document.getElementById('balance');
-const resultDiv = document.getElementById('withdraw-result');
-const withdrawnSpan = document.getElementById('withdrawed-amount');
-const balanceResultSpan = document.getElementById('withdraw-balance');
+    /* =====================
+       WALLET INIT
+    ===================== */
+    let walletData = JSON.parse(localStorage.getItem('walletData')) || {
+        balance: 100,
+        adn: 0
+    };
 
-withdrawBtn.addEventListener('click', () => {
-  const amount = parseFloat(amountInput.value);
-  if(isNaN(amount) || amount <= 0){
-    alert("Enter a valid amount");
-    return;
-  }
+    let balance = walletData.balance;
+    document.getElementById('balance').textContent = balance;
 
-  if(wallet.balance < amount){
-    alert("Insufficient balance");
-    return;
-  }
+    /* =====================
+       ADS CONFIG
+    ===================== */
+    const ads = {
+        1: "https://omg10.com/4/10591369",
+        2: "https://omg10.com/4/10591326"
+    };
 
-  wallet.balance -= amount;
-  localStorage.setItem("wallet", JSON.stringify(wallet));
+    const watchBtn = document.getElementById('watch-btn');
+    const captchaContainer = document.getElementById('captcha-container');
+    const captchaQuestion = document.getElementById('captcha-question');
+    const captchaAnswer = document.getElementById('captcha-answer');
+    const verifyBtn = document.getElementById('verify-btn');
+    const rewardDiv = document.getElementById('reward');
 
-  // تحديث العرض
-  balanceSpan.textContent = wallet.balance;
-  withdrawnSpan.textContent = amount;
-  balanceResultSpan.textContent = wallet.balance;
+    let nextAd = 1;
+    let captchaResult = 0;
 
-  resultDiv.classList.remove('hidden');
-});
+    /* =====================
+       WATCH AD
+    ===================== */
+    watchBtn.addEventListener('click', () => {
 
-// ===== Watch Ad Section =====
-const watchBtn = document.getElementById('watch-btn');
-const watchResult = document.getElementById('watch-result');
-const earnedSpan = document.getElementById('earned-w');
+        if (walletData.adn === 0) nextAd = 1;
+        else if (walletData.adn === 1) nextAd = 2;
+        else nextAd = 1;
 
-watchBtn.addEventListener('click', () => {
-  watchBtn.disabled = true;
-  watchBtn.textContent = "Watching... 30s";
+        if (nextAd === 2) {
+            generateCaptcha();
+            captchaContainer.classList.remove('hidden');
+            watchBtn.disabled = true;
+        } else {
+            startAd(nextAd);
+        }
+    });
 
-  let countdown = 30;
-  const interval = setInterval(() => {
-    countdown--;
-    watchBtn.textContent = `Watching... ${countdown}s`;
+    verifyBtn.addEventListener('click', () => {
+        const userAns = parseInt(captchaAnswer.value);
+        if (userAns === captchaResult) {
+            captchaContainer.classList.add('hidden');
+            captchaAnswer.value = "";
+            watchBtn.disabled = false;
+            startAd(nextAd);
+        } else {
+            alert("Wrong answer! Try again.");
+        }
+    });
 
-    if(countdown <= 0){
-      clearInterval(interval);
-      const earned = 5;
-      wallet.balance += earned;
-      localStorage.setItem("wallet", JSON.stringify(wallet));
+    function generateCaptcha() {
+        let a = Math.floor(Math.random() * 9) + 1;
+        let b = Math.floor(Math.random() * 9) + 1;
 
-      balanceSpan.textContent = wallet.balance;
-      earnedSpan.textContent = earned;
-      watchResult.classList.remove('hidden');
-
-      watchBtn.textContent = "Watch Ad";
-      watchBtn.disabled = false;
+        if (a < b) {
+            captchaResult = a + b;
+            captchaQuestion.textContent = `${a} + ${b} = ?`;
+        } else {
+            captchaResult = a - b;
+            captchaQuestion.textContent = `${a} - ${b} = ?`;
+        }
     }
-  }, 1000);
+
+    function startAd(ad) {
+        const adWindow = window.open(ads[ad], "_blank", "width=800,height=600");
+        let watched = false;
+
+        setTimeout(() => {
+            watched = true;
+            adWindow.close();
+            giveReward(ad);
+        }, 30000);
+
+        const checker = setInterval(() => {
+            if (adWindow.closed) {
+                clearInterval(checker);
+                if (!watched) {
+                    const replay = confirm("You didn't wait 30s. Do you want to replay?");
+                    if (replay) watchBtn.click();
+                }
+            }
+        }, 1000);
+    }
+
+    function giveReward(ad) {
+        balance += 5;
+        walletData.balance = balance;
+        walletData.adn = ad;
+        walletData.timestamp = Date.now();
+        localStorage.setItem('walletData', JSON.stringify(walletData));
+
+        document.getElementById('balance').textContent = balance;
+        rewardDiv.classList.remove('hidden');
+        setTimeout(() => rewardDiv.classList.add('hidden'), 3000);
+    }
+
+    /* =====================
+       WITHDRAW (NEW ENCRYPTION)
+    ===================== */
+    const withdrawBtn = document.getElementById('withdraw-btn');
+    const copyBtn = document.getElementById('copy-btn');
+
+    withdrawBtn.addEventListener('click', () => {
+        const amount = parseFloat(document.getElementById('withdraw-amount').value);
+
+        if (isNaN(amount) || amount <= 0) {
+            alert("Enter valid amount");
+            return;
+        }
+
+        if (amount > balance) {
+            alert("Not enough balance");
+            return;
+        }
+
+        /* ===== ENCRYPTION SYSTEM ===== */
+
+        // time → 0.001
+        let codeValue = performance.now() * 0.001;
+
+        // ×5
+        codeValue *= 5;
+
+        // 5 random numbers (1–9)
+        const rand = Array.from({ length: 5 }, () =>
+            Math.floor(Math.random() * 9) + 1
+        );
+
+        rand.forEach(n => codeValue *= n);
+
+        // ÷ π
+        codeValue /= Math.PI;
+
+        const finalCode = codeValue.toFixed(1);
+
+        /* ===== END ENCRYPTION ===== */
+
+        balance -= amount;
+        walletData.balance = balance;
+        localStorage.setItem('walletData', JSON.stringify(walletData));
+
+        document.getElementById('balance').textContent = balance;
+        document.getElementById('withdrawed-amount').textContent = amount;
+        document.getElementById('withdraw-code').textContent = finalCode;
+        document.getElementById('withdraw-balance').textContent = balance;
+
+        document.getElementById('withdraw-result').classList.remove('hidden');
+        document.getElementById('copy-status').classList.add('hidden');
+        document.getElementById('withdraw-amount').value = "";
+    });
+
+    /* =====================
+       COPY CODE
+    ===================== */
+    copyBtn.addEventListener('click', () => {
+        const code = document.getElementById('withdraw-code').textContent;
+        navigator.clipboard.writeText(code).then(() => {
+            const s = document.getElementById('copy-status');
+            s.classList.remove('hidden');
+            setTimeout(() => s.classList.add('hidden'), 2000);
+        });
+    });
+
 });
