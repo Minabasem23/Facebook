@@ -1,13 +1,22 @@
 <div class="wallet-container">
   <h2>Withdraw</h2>
-  <p>Your balance: <span id="balance">100</span> W</p>
+
+  <p>Your balance: <span id="balance">0</span> W</p>
+
   <input type="number" id="withdraw-amount" placeholder="Enter amount">
   <button id="withdraw-btn">Withdraw</button>
 
-  <div id="withdraw-result" style="display:none; margin-top:10px; color:#00ff00;">
-    Withdraw successful!<br>
-    Amount: <span id="withdrawed-amount"></span><br>
-    Code: <span id="withdraw-code"></span><br>
-    Remaining Balance: <span id="withdraw-balance"></span> W
+  <div id="withdraw-result" style="display:none; margin-top:15px;">
+    <p>✅ Withdraw successful!</p>
+    <p>Amount: <span id="withdrawed-amount"></span> W</p>
+    <p>
+      Code:
+      <span id="withdraw-code" style="font-weight:bold;"></span>
+    </p>
+
+    <button id="copy-btn">📋 Copy Code</button>
+    <p id="copy-status" style="color:#00ff00; display:none;">Copied!</p>
+
+    <p>Remaining Balance: <span id="withdraw-balance"></span> W</p>
   </div>
 </div>
