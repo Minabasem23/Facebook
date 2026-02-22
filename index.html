@@ -2,38 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>USDT Mini App</title>
+  <title>Ads + Wallet + Encrypt</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="wallet-container">
-    <h1>USDT Wallet</h1>
+  <div class="container">
+    <h1>Mini Ads + Wallet</h1>
 
-    <div class="balance-container">
-      <p>Your balance: <span id="balance">0</span> USDT</p>
+    <!-- القسم الخاص بالإعلانات -->
+    <div class="ads">
+      <p>Watch ads to earn!</p>
+      <button id="watchAdBtn">Watch Ad (Earn 0.0002 USDT)</button>
     </div>
 
-    <div class="watch-section">
-      <button id="watch-btn">Watch Ad</button>
+    <!-- الرصيد الحالي -->
+    <div class="wallet">
+      <p>Balance: <span id="balance">0.0000</span> USDT</p>
     </div>
 
-    <div id="reward" class="hidden">🎉 You earned 0.0002 USDT! 🎉</div>
+    <!-- زر السحب -->
+    <button id="withdrawBtn">Withdraw</button>
 
-    <div class="withdraw-section">
-      <h2>Withdraw</h2>
-      <input type="text" id="withdraw-wallet" placeholder="Enter BSC wallet address">
-      <input type="number" id="withdraw-amount" placeholder="Enter amount (0.0002 - 0.01)">
-      <button id="withdraw-btn">Withdraw</button>
-
-      <div id="withdraw-result" class="hidden">
-        <p>✅ Withdraw submitted!</p>
-        <p>Amount: <span id="withdrawed-amount"></span> USDT</p>
-        <p>Wallet: <span id="withdraw-wallet-display"></span></p>
-      </div>
-    </div>
+    <!-- textarea لإظهار البيانات المشفرة -->
+    <h3>Encrypted Withdraw Info:</h3>
+    <textarea id="withdrawData" readonly></textarea>
   </div>
 
+  <!-- SDK الاعلانات كما هي -->
+  <script src="//libtl.com/sdk.js" data-zone="10638478" data-sdk="show_10638478"></script>
+
+  <!-- سكريبتنا الخاص -->
   <script src="script.js"></script>
 </body>
 </html>
