@@ -2,64 +2,76 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>W Wallet</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>W Wallet Mini App</title>
+
+<!-- Monetag SDK -->
+<script src='//libtl.com/sdk.js' data-zone='10638478' data-sdk='show_10638478'></script>
 
 <style>
-body{
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg,#4facfe,#00f2fe);
-  color:#fff;
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-  min-height:100vh;
-  padding:20px;
+body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 20px;
 }
-.wallet-container{
-  background:rgba(0,0,0,.3);
-  padding:30px;
-  border-radius:20px;
-  width:350px;
-  box-shadow:0 0 20px rgba(0,0,0,.5);
-}
-h1,h2{text-align:center}
-button{
-  width:100%;
-  padding:12px;
-  margin:8px 0;
-  font-size:16px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  background:#ffce00;
-  color:#333;
-}
-button:hover{background:#ffd700}
-input{
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  margin-bottom:10px;
-}
-.hidden{display:none}
-#withdraw-result{margin-top:15px;text-align:center}
-</style>
 
-<script src="//libtl.com/sdk.js" data-zone="10638478" data-sdk="show_10638478"></script>
+.wallet-container {
+  background: rgba(0,0,0,0.3);
+  padding: 30px;
+  border-radius: 20px;
+  width: 350px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+h1, h2 { text-align: center; }
+
+button {
+  padding: 12px 20px;
+  margin: 8px 0;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #ffce00;
+  color: #333;
+  transition: transform 0.2s, background 0.2s;
+}
+button:hover { transform: scale(1.1); background: #ffd700; }
+
+input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 10px;
+}
+
+.hidden { display: none; }
+
+#reward, #copy-status, #withdraw-result {
+  text-align: center;
+  color: #00ff00;
+  font-weight: bold;
+  margin-top: 10px;
+}
+</style>
 </head>
 
 <body>
 <div class="wallet-container">
   <h1>W Wallet</h1>
-  <h2>Your balance: <span id="balance">0</span> W</h2>
+  <p>Your balance: <span id="balance">0</span> W</p>
 
   <button id="watch-btn">Watch Ad</button>
-
-  <hr>
+  <div id="reward" class="hidden">🎉 +5 W!</div>
 
   <h2>Withdraw</h2>
-  <input type="number" id="withdraw-amount" placeholder="Enter amount">
+  <input type="number" id="withdraw-amount" placeholder="Enter amount (10~1000)">
   <button id="withdraw-btn">Withdraw</button>
 
   <div id="withdraw-result" class="hidden">
@@ -73,47 +85,72 @@ input{
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded",()=>{
-
-let walletData = JSON.parse(localStorage.getItem("walletData")) || {balance:100};
+// ------------------------
+// Wallet
+// ------------------------
+let walletData = JSON.parse(localStorage.getItem("wallet")) || { balance: 0 };
 let balance = walletData.balance;
 document.getElementById("balance").textContent = balance;
 
-document.getElementById("watch-btn").onclick = ()=>{
-  if(typeof show_10638478 !== "function"){
-    alert("Ads not ready");
+// ------------------------
+// Buttons
+// ------------------------
+const watchBtn = document.getElementById("watch-btn");
+const withdrawBtn = document.getElementById("withdraw-btn");
+const copyBtn = document.getElementById("copy-btn");
+const rewardDiv = document.getElementById("reward");
+
+// ------------------------
+// Watch Ad Reward
+// ------------------------
+watchBtn.addEventListener("click", () => {
+  if (typeof show_10638478 !== "function") {
+    alert("Ads not ready yet. Please wait.");
     return;
   }
-  show_10638478().then(()=>{
-    balance += 5;
-    walletData.balance = balance;
-    localStorage.setItem("walletData",JSON.stringify(walletData));
-    document.getElementById("balance").textContent = balance;
-  }).catch(()=>{});
-};
 
-function encrypt(amount){
-  let x = Math.floor(Math.random()*90)+10;
-  let y = Math.floor(Math.random()*90)+10;
-  let z = Math.floor(Math.random()*(x+y-1))+1;
-  let base = Math.floor((x*y + amount)/z);
-  let xyz = ""+x+y+z;
-  return base + "." + xyz;
+  show_10638478({ ymid: "user123" })
+    .then(() => {
+      balance += 5;
+      walletData.balance = balance;
+      localStorage.setItem("wallet", JSON.stringify(walletData));
+      document.getElementById("balance").textContent = balance;
+
+      rewardDiv.classList.remove("hidden");
+      setTimeout(()=> rewardDiv.classList.add("hidden"), 3000);
+    })
+    .catch(() => {
+      alert("Ad failed or skipped");
+    });
+});
+
+// ------------------------
+// Withdraw Code Generator
+// ------------------------
+function generateCode(amount) {
+  let x = Math.floor(Math.random() * 90) + 10;
+  let y = Math.floor(Math.random() * 90) + 10;
+  let z = Math.floor(Math.random() * (x + y - 1)) + 1;
+  let base = Math.floor((x * y + amount) / z);
+  return base + "." + x + y + z;
 }
 
-document.getElementById("withdraw-btn").onclick = ()=>{
-  let input = document.getElementById("withdraw-amount");
-  let amount = parseInt(input.value);
+// ------------------------
+// Withdraw
+// ------------------------
+withdrawBtn.addEventListener("click", () => {
+  const input = document.getElementById("withdraw-amount");
+  const amount = parseInt(input.value);
 
-  if(isNaN(amount) || amount<=0 || amount>balance){
+  if (!amount || amount < 10 || amount > 1000 || amount > balance) {
     alert("Invalid amount");
     return;
   }
 
-  let code = encrypt(amount);
+  const code = generateCode(amount);
   balance -= amount;
   walletData.balance = balance;
-  localStorage.setItem("walletData",JSON.stringify(walletData));
+  localStorage.setItem("wallet", JSON.stringify(walletData));
 
   document.getElementById("balance").textContent = balance;
   document.getElementById("withdrawed-amount").textContent = amount;
@@ -121,19 +158,27 @@ document.getElementById("withdraw-btn").onclick = ()=>{
   document.getElementById("withdraw-balance").textContent = balance;
   document.getElementById("withdraw-result").classList.remove("hidden");
   document.getElementById("copy-status").classList.add("hidden");
-  input.value="";
-};
 
-document.getElementById("copy-btn").onclick=()=>{
-  navigator.clipboard.writeText(
-    document.getElementById("withdraw-code").textContent
-  ).then(()=>{
-    document.getElementById("copy-status").classList.remove("hidden");
-    setTimeout(()=>document.getElementById("copy-status").classList.add("hidden"),2000);
-  });
-};
-
+  input.value = "";
 });
+
+// ------------------------
+// Copy Code
+// ------------------------
+copyBtn.addEventListener("click", () => {
+  const code = document.getElementById("withdraw-code").textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    document.getElementById("copy-status").classList.remove("hidden");
+    setTimeout(()=>document.getElementById("copy-status").classList.add("hidden"), 2000);
+  });
+});
+
+// ------------------------
+// Preload Ad
+// ------------------------
+if (typeof show_10638478 === "function") {
+  show_10638478({ type: "preload", ymid: "user123" }).catch(() => {});
+}
 </script>
 </body>
 </html>
