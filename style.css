@@ -1,60 +1,48 @@
-
 body {
-  font-family: 'Arial', sans-serif;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  font-family: Arial, sans-serif;
+  background: #1e1e2f;
   color: #fff;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.container {
+  width: 500px;
+  text-align: center;
+  background: #2a2a3f;
   padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px #000;
 }
-
-.wallet-container {
-  background: rgba(0,0,0,0.3);
-  padding: 30px;
-  border-radius: 20px;
-  width: 350px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
-  animation: fadeIn 1s ease-in-out;
-}
-
-h1, h2 { text-align: center; }
 
 button {
-  padding: 12px 20px;
-  margin: 8px 0;
-  font-size: 16px;
+  margin: 10px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
+  background: #ff4081;
+  color: white;
+  font-size: 16px;
   cursor: pointer;
-  background: #ffce00;
-  color: #333;
-  transition: transform 0.2s, background 0.2s;
+  transition: 0.2s;
 }
 
 button:hover {
-  transform: scale(1.1);
-  background: #ffd700;
+  background: #e91e63;
 }
 
-input {
+textarea {
   width: 100%;
-  padding: 10px;
-  border-radius: 10px;
+  height: 100px;
+  margin-top: 10px;
+  border-radius: 8px;
   border: none;
-  margin-bottom: 10px;
+  padding: 10px;
+  font-size: 14px;
+  resize: none;
+  background: #1e1e2f;
+  color: #fff;
 }
-
-.hidden { display: none; }
-
-#reward {
-  margin-top: 15px;
-  font-size: 18px;
-  color: #00ff00;
-  text-align: center;
-  animation: pop 1s ease-in-out;
-}
-
-@keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
-@keyframes pop { 0%{transform:scale(0);}100%{transform:scale(1);} }
