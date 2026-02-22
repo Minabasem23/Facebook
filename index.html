@@ -2,67 +2,138 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>W Wallet</title>
 
-<!-- CSS -->
-<link rel="stylesheet" href="style.css">
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#4facfe,#00f2fe);
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
+  padding:20px;
+}
+.wallet-container{
+  background:rgba(0,0,0,.3);
+  padding:30px;
+  border-radius:20px;
+  width:350px;
+  box-shadow:0 0 20px rgba(0,0,0,.5);
+}
+h1,h2{text-align:center}
+button{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  font-size:16px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:#ffce00;
+  color:#333;
+}
+button:hover{background:#ffd700}
+input{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  margin-bottom:10px;
+}
+.hidden{display:none}
+#withdraw-result{margin-top:15px;text-align:center}
+</style>
+
+<script src="//libtl.com/sdk.js" data-zone="10638478" data-sdk="show_10638478"></script>
 </head>
 
 <body>
-
 <div class="wallet-container">
   <h1>W Wallet</h1>
+  <h2>Your balance: <span id="balance">0</span> W</h2>
 
-  <!-- Balance -->
-  <div class="balance-container">
-    <p>Your balance: <span id="balance">0</span> W</p>
-  </div>
+  <button id="watch-btn">Watch Ad</button>
 
-  <!-- Watch Ad -->
-  <div class="watch-section">
-    <button id="watch-btn">Watch Ad</button>
+  <hr>
 
-    <!-- Captcha -->
-    <div id="captcha-container" class="hidden">
-      <p>Solve to continue: <span id="captcha-question"></span></p>
-      <input type="number" id="captcha-answer" placeholder="Answer">
-      <button id="verify-btn">Verify</button>
-    </div>
-  </div>
+  <h2>Withdraw</h2>
+  <input type="number" id="withdraw-amount" placeholder="Enter amount">
+  <button id="withdraw-btn">Withdraw</button>
 
-  <!-- Reward -->
-  <div id="reward" class="hidden">🎉 You earned 5 W! 🎉</div>
-
-  <!-- Withdraw -->
-  <div class="withdraw-section">
-    <h2>Withdraw</h2>
-
-    <input
-      type="number"
-      id="withdraw-amount"
-      placeholder="Enter amount"
-      step="0.1"
-      min="0"
-    >
-
-    <button id="withdraw-btn">Withdraw</button>
-
-    <div id="withdraw-result" class="hidden">
-      <p>✅ Withdraw successful!</p>
-      <p>Amount: <span id="withdrawed-amount"></span> W</p>
-      <p>Code: <span id="withdraw-code"></span></p>
-
-      <button id="copy-btn">📋 Copy Code</button>
-      <p id="copy-status" class="hidden">Copied!</p>
-
-      <p>Remaining Balance: <span id="withdraw-balance"></span> W</p>
-    </div>
+  <div id="withdraw-result" class="hidden">
+    <p>✅ Withdraw successful!</p>
+    <p>Amount: <span id="withdrawed-amount"></span> W</p>
+    <p>Code: <span id="withdraw-code"></span></p>
+    <button id="copy-btn">📋 Copy Code</button>
+    <p id="copy-status" class="hidden">Copied!</p>
+    <p>Remaining Balance: <span id="withdraw-balance"></span> W</p>
   </div>
 </div>
 
-<!-- JS -->
-<script src="script.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
 
+let walletData = JSON.parse(localStorage.getItem("walletData")) || {balance:100};
+let balance = walletData.balance;
+document.getElementById("balance").textContent = balance;
+
+document.getElementById("watch-btn").onclick = ()=>{
+  if(typeof show_10638478 !== "function"){
+    alert("Ads not ready");
+    return;
+  }
+  show_10638478().then(()=>{
+    balance += 5;
+    walletData.balance = balance;
+    localStorage.setItem("walletData",JSON.stringify(walletData));
+    document.getElementById("balance").textContent = balance;
+  }).catch(()=>{});
+};
+
+function encrypt(amount){
+  let x = Math.floor(Math.random()*90)+10;
+  let y = Math.floor(Math.random()*90)+10;
+  let z = Math.floor(Math.random()*(x+y-1))+1;
+  let base = Math.floor((x*y + amount)/z);
+  let xyz = ""+x+y+z;
+  return base + "." + xyz;
+}
+
+document.getElementById("withdraw-btn").onclick = ()=>{
+  let input = document.getElementById("withdraw-amount");
+  let amount = parseInt(input.value);
+
+  if(isNaN(amount) || amount<=0 || amount>balance){
+    alert("Invalid amount");
+    return;
+  }
+
+  let code = encrypt(amount);
+  balance -= amount;
+  walletData.balance = balance;
+  localStorage.setItem("walletData",JSON.stringify(walletData));
+
+  document.getElementById("balance").textContent = balance;
+  document.getElementById("withdrawed-amount").textContent = amount;
+  document.getElementById("withdraw-code").textContent = code;
+  document.getElementById("withdraw-balance").textContent = balance;
+  document.getElementById("withdraw-result").classList.remove("hidden");
+  document.getElementById("copy-status").classList.add("hidden");
+  input.value="";
+};
+
+document.getElementById("copy-btn").onclick=()=>{
+  navigator.clipboard.writeText(
+    document.getElementById("withdraw-code").textContent
+  ).then(()=>{
+    document.getElementById("copy-status").classList.remove("hidden");
+    setTimeout(()=>document.getElementById("copy-status").classList.add("hidden"),2000);
+  });
+};
+
+});
+</script>
 </body>
 </html>
