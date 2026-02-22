@@ -1,28 +1,40 @@
+// bot.js
 const { Telegraf } = require('telegraf');
+const express = require('express');
+const app = express();
 
-// ضع توكن البوت هنا
-const bot = new Telegraf('YOUR_BOT_TOKEN');
+// استخدم التوكن والجروب التجريبي للأختبار
+const BOT_TOKEN = '8598281162:AAE7-tKfbvL4057cggKT8Mf50qvc_fV6fCc';
+const GROUP_ID = 7560767142;
 
-// ضع هنا معرف الجروب (مثال: -1001234567890)
-const groupId = 'YOUR_GROUP_ID';
+const bot = new Telegraf(BOT_TOKEN);
 
-// أمر لإرسال سحب محدد
-bot.command('withdraw', (ctx) => {
-    const amount = '0.0002 USDT'; // يمكن تغييره ديناميكيًا
-    const wallet = '0xYourWalletAddressHere';
+app.use(express.json());
 
-    const message = `💰 سحب جديد!\nالمبلغ: ${amount}\nالمحفظة: ${wallet}`;
+// مسار استقبال طلب السحب من واجهة المستخدم
+app.post('/withdraw', (req, res) => {
+  const { wallet, amount } = req.body;
 
-    bot.telegram.sendMessage(groupId, message)
-        .then(() => {
-            ctx.reply('تم إرسال الرسالة للجروب بنجاح ✅');
-        })
-        .catch(err => {
-            console.error(err);
-            ctx.reply('حدث خطأ أثناء الإرسال ❌');
-        });
+  if (!wallet || !amount) {
+    return res.status(400).send({ status: "error", message: "Missing wallet or amount" });
+  }
+
+  // إرسال رسالة للجروب
+  bot.telegram.sendMessage(
+    GROUP_ID,
+    `💰 New withdrawal request!\nWallet: ${wallet}\nAmount: ${amount.toFixed(6)} USDT`
+  ).then(() => {
+    console.log(`Withdrawal sent: ${wallet} - ${amount}`);
+  }).catch(err => {
+    console.error('Error sending message:', err);
+  });
+
+  // إعادة رد للواجهة
+  res.send({ status: "ok" });
 });
 
-// تشغيل البوت
-bot.launch();
-console.log('Bot is running...');
+// تشغيل السيرفر
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
