@@ -1,7 +1,6 @@
 // -----------------------------
 // Wallet System + Ads + Encrypt
 // -----------------------------
-
 let balance = 0.0;
 const earnPerAd = 0.0002;
 const balanceEl = document.getElementById('balance');
@@ -46,19 +45,27 @@ function decryptText(bitsText) {
 
 // ---------- Ads ----------
 watchAdBtn.addEventListener('click', () => {
-    // يمكن استدعاء SDK هنا إذا أردت
-    // show_10638478().then(() => { ... });
-
-    // محاكاة مشاهدة الإعلان وزيادة الرصيد
-    watchAdBtn.disabled = true;
-    watchAdBtn.innerText = "Watching Ad...";
-    setTimeout(() => {
-        balance += earnPerAd;
-        balanceEl.innerText = balance.toFixed(4);
-        watchAdBtn.disabled = false;
-        watchAdBtn.innerText = `Watch Ad (Earn ${earnPerAd} USDT)`;
-        alert(`You earned ${earnPerAd} USDT!`);
-    }, 3000); // 3s simulate ad
+    if(typeof show_10638478 === 'function'){
+        // استدعاء SDK الرسمي
+        show_10638478().then(() => {
+            balance += earnPerAd;
+            balanceEl.innerText = balance.toFixed(4);
+            alert(`You earned ${earnPerAd} USDT!`);
+        }).catch(() => {
+            alert("Ad failed or skipped.");
+        });
+    } else {
+        // fallback محاكاة الإعلان إذا SDK لم يحمل
+        watchAdBtn.disabled = true;
+        watchAdBtn.innerText = "Watching Ad...";
+        setTimeout(() => {
+            balance += earnPerAd;
+            balanceEl.innerText = balance.toFixed(4);
+            watchAdBtn.disabled = false;
+            watchAdBtn.innerText = `Watch Ad (Earn ${earnPerAd} USDT)`;
+            alert(`You earned ${earnPerAd} USDT!`);
+        }, 3000);
+    }
 });
 
 // ---------- Withdraw ----------
@@ -74,7 +81,6 @@ withdrawBtn.addEventListener('click', () => {
     let encrypted = encryptText(textToEncrypt);
     withdrawDataEl.value = encrypted;
 
-    // Reset balance
     balance = 0;
     balanceEl.innerText = balance.toFixed(4);
 });
