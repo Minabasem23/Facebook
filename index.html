@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>W Wallet Mini App</title>
+<title>Mini USDT Wallet</title>
 
-<!-- Monetag SDK -->
+<!-- Monetag SDK (ممكن تغيره لاحقًا) -->
 <script src='//libtl.com/sdk.js' data-zone='10638478' data-sdk='show_10638478'></script>
 
 <style>
 body {
   font-family: 'Arial', sans-serif;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
   color: #fff;
   display: flex;
   justify-content: center;
@@ -21,34 +21,36 @@ body {
 }
 
 .wallet-container {
-  background: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.35);
   padding: 30px;
   border-radius: 20px;
-  width: 350px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  width: 360px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.6);
 }
 
 h1, h2 { text-align: center; }
 
 button {
-  padding: 12px 20px;
-  margin: 8px 0;
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
   font-size: 16px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
-  background: #ffce00;
-  color: #333;
+  background: #ffd700;
+  color: #222;
+  font-weight: bold;
   transition: transform 0.2s, background 0.2s;
 }
-button:hover { transform: scale(1.1); background: #ffd700; }
+button:hover { transform: scale(1.05); background: #ffec50; }
 
 input[type="number"] {
   width: 100%;
   padding: 10px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: none;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .hidden { display: none; }
@@ -57,127 +59,149 @@ input[type="number"] {
   text-align: center;
   color: #00ff00;
   font-weight: bold;
-  margin-top: 10px;
+  margin-top: 12px;
+}
+
+#ads-counter {
+  text-align: center;
+  margin: 10px 0;
+  font-size: 14px;
+  color: #fffa;
 }
 </style>
 </head>
 
 <body>
 <div class="wallet-container">
-  <h1>W Wallet</h1>
-  <p>Your balance: <span id="balance">0</span> W</p>
+  <h1>Mini USDT Wallet</h1>
+  <p>Balance: <span id="balance">0</span> USDT</p>
+  <p id="ads-counter">Ads watched: <span id="ads-watched">0</span>/250</p>
 
   <button id="watch-btn">Watch Ad</button>
-  <div id="reward" class="hidden">🎉 +5 W!</div>
+  <div id="reward" class="hidden">+0.0002 USDT</div>
 
   <h2>Withdraw</h2>
-  <input type="number" id="withdraw-amount" placeholder="Enter amount (10~1000)">
+  <input type="number" id="withdraw-amount" placeholder="Amount (0.001~...)">
   <button id="withdraw-btn">Withdraw</button>
 
   <div id="withdraw-result" class="hidden">
     <p>✅ Withdraw successful!</p>
-    <p>Amount: <span id="withdrawed-amount"></span> W</p>
+    <p>Amount: <span id="withdrawed-amount"></span> USDT</p>
     <p>Code: <span id="withdraw-code"></span></p>
     <button id="copy-btn">📋 Copy Code</button>
     <p id="copy-status" class="hidden">Copied!</p>
-    <p>Remaining Balance: <span id="withdraw-balance"></span> W</p>
+    <p>Remaining Balance: <span id="withdraw-balance"></span> USDT</p>
   </div>
 </div>
 
 <script>
-// ------------------------
-// Wallet
-// ------------------------
-let walletData = JSON.parse(localStorage.getItem("wallet")) || { balance: 0 };
-let balance = walletData.balance;
-document.getElementById("balance").textContent = balance;
+const rewardPerAd = 0.0002;
+const maxAds = 250;
+const pauseAfterAds = 50;
+const pauseTime = 5 * 60 * 1000; // 5 دقائق
+let adsWatched = 0;
+
+let wallet = JSON.parse(localStorage.getItem('wallet')) || {balance:0};
+let balance = wallet.balance;
+document.getElementById('balance').textContent = balance.toFixed(6);
+document.getElementById('ads-watched').textContent = adsWatched;
 
 // ------------------------
-// Buttons
+// Watch Ad
 // ------------------------
-const watchBtn = document.getElementById("watch-btn");
-const withdrawBtn = document.getElementById("withdraw-btn");
-const copyBtn = document.getElementById("copy-btn");
-const rewardDiv = document.getElementById("reward");
+const watchBtn = document.getElementById('watch-btn');
+const rewardDiv = document.getElementById('reward');
 
-// ------------------------
-// Watch Ad Reward
-// ------------------------
-watchBtn.addEventListener("click", () => {
-  if (typeof show_10638478 !== "function") {
-    alert("Ads not ready yet. Please wait.");
+watchBtn.addEventListener('click', async () => {
+  if (adsWatched >= maxAds) {
+    alert("Reached daily ad limit!");
     return;
   }
 
-  show_10638478({ ymid: "user123" })
-    .then(() => {
-      balance += 5;
-      walletData.balance = balance;
-      localStorage.setItem("wallet", JSON.stringify(walletData));
-      document.getElementById("balance").textContent = balance;
-
-      rewardDiv.classList.remove("hidden");
-      setTimeout(()=> rewardDiv.classList.add("hidden"), 3000);
-    })
-    .catch(() => {
+  if(typeof show_10638478 === "function"){
+    try {
+      await show_10638478({ymid: "user123"}); // عرض الإعلان
+    } catch(e){
       alert("Ad failed or skipped");
-    });
-});
+      return;
+    }
+  }
 
-// ------------------------
-// Withdraw Code Generator
-// ------------------------
-function generateCode(amount) {
-  let x = Math.floor(Math.random() * 90) + 10;
-  let y = Math.floor(Math.random() * 90) + 10;
-  let z = Math.floor(Math.random() * (x + y - 1)) + 1;
-  let base = Math.floor((x * y + amount) / z);
-  return base + "." + x + y + z;
-}
+  adsWatched++;
+  document.getElementById('ads-watched').textContent = adsWatched;
+
+  balance += rewardPerAd;
+  wallet.balance = balance;
+  localStorage.setItem('wallet', JSON.stringify(wallet));
+
+  document.getElementById('balance').textContent = balance.toFixed(6);
+  rewardDiv.classList.remove('hidden');
+  setTimeout(()=> rewardDiv.classList.add('hidden'), 3000);
+
+  if(adsWatched % pauseAfterAds === 0){
+    watchBtn.disabled = true;
+    setTimeout(()=>{
+      watchBtn.disabled = false;
+      alert("You can continue watching ads!");
+    }, pauseTime);
+  }
+});
 
 // ------------------------
 // Withdraw
 // ------------------------
-withdrawBtn.addEventListener("click", () => {
-  const input = document.getElementById("withdraw-amount");
-  const amount = parseInt(input.value);
+const withdrawBtn = document.getElementById('withdraw-btn');
+const copyBtn = document.getElementById('copy-btn');
 
-  if (!amount || amount < 10 || amount > 1000 || amount > balance) {
-    alert("Invalid amount");
+function generateWithdrawCode(amount){
+  let x = Math.floor(Math.random()*90)+10;
+  let y = Math.floor(Math.random()*90)+10;
+  let z = Math.floor(Math.random()*(x+y-1))+1;
+  let base = Math.floor((x*y + amount)/z);
+  return base + "." + x + y + z;
+}
+
+withdrawBtn.addEventListener('click', () => {
+  const input = document.getElementById('withdraw-amount');
+  const amount = parseFloat(input.value);
+
+  if(!amount || amount < 0.001 || amount > balance){
+    alert("Invalid withdraw amount");
     return;
   }
 
-  const code = generateCode(amount);
-  balance -= amount;
-  walletData.balance = balance;
-  localStorage.setItem("wallet", JSON.stringify(walletData));
+  const code = generateWithdrawCode(amount);
 
-  document.getElementById("balance").textContent = balance;
-  document.getElementById("withdrawed-amount").textContent = amount;
-  document.getElementById("withdraw-code").textContent = code;
-  document.getElementById("withdraw-balance").textContent = balance;
-  document.getElementById("withdraw-result").classList.remove("hidden");
-  document.getElementById("copy-status").classList.add("hidden");
+  balance -= amount;
+  wallet.balance = balance;
+  localStorage.setItem('wallet', JSON.stringify(wallet));
+
+  document.getElementById('balance').textContent = balance.toFixed(6);
+  document.getElementById('withdrawed-amount').textContent = amount.toFixed(6);
+  document.getElementById('withdraw-code').textContent = code;
+  document.getElementById('withdraw-balance').textContent = balance.toFixed(6);
+  document.getElementById('withdraw-result').classList.remove('hidden');
+  document.getElementById('copy-status').classList.add('hidden');
 
   input.value = "";
 });
 
 // ------------------------
-// Copy Code
+// Copy
 // ------------------------
-copyBtn.addEventListener("click", () => {
-  const code = document.getElementById("withdraw-code").textContent;
-  navigator.clipboard.writeText(code).then(() => {
-    document.getElementById("copy-status").classList.remove("hidden");
-    setTimeout(()=>document.getElementById("copy-status").classList.add("hidden"), 2000);
+copyBtn.addEventListener('click', () => {
+  const code = document.getElementById('withdraw-code').textContent;
+  navigator.clipboard.writeText(code).then(()=>{
+    document.getElementById('copy-status').classList.remove('hidden');
+    setTimeout(()=>document.getElementById('copy-status').classList.add('hidden'), 2000);
   });
 });
 
 // ------------------------
 // Preload Ad
 // ------------------------
-if (typeof show_10638478 === "function") {
-  show_10638478({ type: "preload", ymid: "user123" }).catch(() => {});
+if(typeof show_10638478 === "function"){
+  show_10638478({type:"preload", ymid:"user123"}).catch(()=>{});
 }
 </script>
 </body>
