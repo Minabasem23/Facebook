@@ -1,56 +1,80 @@
-document.addEventListener("DOMContentLoaded", () => {
-  let balance = parseFloat(localStorage.getItem('balance')) || 0;
-  const maxAds = 250;
-  const pauseAfter = 50;
-  const pauseTime = 5 * 60 * 1000; // 5 دقائق
-  let adsWatched = parseInt(localStorage.getItem('adsWatched')) || 0;
+// -----------------------------
+// Wallet System + Ads + Encrypt
+// -----------------------------
 
-  const balanceDisplay = document.getElementById('balance');
-  const watchBtn = document.getElementById('watch-btn');
-  const rewardDiv = document.getElementById('reward');
-  const withdrawBtn = document.getElementById('withdraw-btn');
+let balance = 0.0;
+const earnPerAd = 0.0002;
+const balanceEl = document.getElementById('balance');
+const withdrawDataEl = document.getElementById('withdrawData');
+const watchAdBtn = document.getElementById('watchAdBtn');
+const withdrawBtn = document.getElementById('withdrawBtn');
 
-  balanceDisplay.textContent = balance.toFixed(6);
+// ---------- Encryptor ----------
+function to10Bit(char, salt) {
+    let code = char.charCodeAt(0);
+    code = code + salt % 4;
+    let binary = code.toString(2).padStart(10, '0');
+    let first5 = binary.slice(0,5);
+    let last5 = binary.slice(5);
+    return last5 + first5;
+}
 
-  watchBtn.addEventListener('click', () => {
-    if (adsWatched >= maxAds) {
-      alert("Reached daily ad limit!");
-      return;
+function from10Bit(bits, salt) {
+    let last5 = bits.slice(0,5);
+    let first5 = bits.slice(5);
+    let original = first5 + last5;
+    return String.fromCharCode(parseInt(original,2) - salt%4);
+}
+
+function generateSalt() { return Math.floor(Math.random()*1000); }
+
+function encryptText(text) {
+    let salt = generateSalt();
+    let result = [];
+    for(let char of text) result.push(to10Bit(char,salt));
+    return salt.toString().padStart(4,'0') + ':' + result.join(' ');
+}
+
+function decryptText(bitsText) {
+    let [saltStr,bitsPart] = bitsText.split(':');
+    let salt = parseInt(saltStr);
+    let bitsArray = bitsPart.trim().split(' ');
+    let result = '';
+    for(let bits of bitsArray) result += from10Bit(bits,salt);
+    return result;
+}
+
+// ---------- Ads ----------
+watchAdBtn.addEventListener('click', () => {
+    // يمكن استدعاء SDK هنا إذا أردت
+    // show_10638478().then(() => { ... });
+
+    // محاكاة مشاهدة الإعلان وزيادة الرصيد
+    watchAdBtn.disabled = true;
+    watchAdBtn.innerText = "Watching Ad...";
+    setTimeout(() => {
+        balance += earnPerAd;
+        balanceEl.innerText = balance.toFixed(4);
+        watchAdBtn.disabled = false;
+        watchAdBtn.innerText = `Watch Ad (Earn ${earnPerAd} USDT)`;
+        alert(`You earned ${earnPerAd} USDT!`);
+    }, 3000); // 3s simulate ad
+});
+
+// ---------- Withdraw ----------
+withdrawBtn.addEventListener('click', () => {
+    if(balance <= 0){
+        alert("Your balance is 0!");
+        return;
     }
+    let walletAddress = prompt("Enter your wallet address:");
+    if(!walletAddress) return;
 
-    adsWatched++;
-    localStorage.setItem('adsWatched', adsWatched);
+    let textToEncrypt = `${walletAddress}:${balance.toFixed(4)}`;
+    let encrypted = encryptText(textToEncrypt);
+    withdrawDataEl.value = encrypted;
 
-    balance += 0.0002;
-    localStorage.setItem('balance', balance.toFixed(6));
-    balanceDisplay.textContent = balance.toFixed(6);
-
-    rewardDiv.classList.remove('hidden');
-    setTimeout(() => rewardDiv.classList.add('hidden'), 2000);
-
-    if (adsWatched % pauseAfter === 0) {
-      watchBtn.disabled = true;
-      setTimeout(() => {
-        watchBtn.disabled = false;
-      }, pauseTime);
-    }
-  });
-
-  withdrawBtn.addEventListener('click', () => {
-    const wallet = document.getElementById('withdraw-wallet').value.trim();
-    const amount = parseFloat(document.getElementById('withdraw-amount').value);
-
-    if (!wallet) { alert("Enter wallet address"); return; }
-    if (!amount || amount > balance || amount < 0.0002) { alert("Invalid amount"); return; }
-
-    balance -= amount;
-    localStorage.setItem('balance', balance.toFixed(6));
-    balanceDisplay.textContent = balance.toFixed(6);
-
-    document.getElementById('withdrawed-amount').textContent = amount.toFixed(6);
-    document.getElementById('withdraw-wallet-display').textContent = wallet;
-    document.getElementById('withdraw-result').classList.remove('hidden');
-
-    // إرسال البيانات للبوت سيتم عبر bot.js في السيرفر
-  });
+    // Reset balance
+    balance = 0;
+    balanceEl.innerText = balance.toFixed(4);
 });
